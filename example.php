@@ -331,7 +331,7 @@ $questionnaireLinks = $client->post('/questionnaire-links', [
         'firstName' => 'John',
         'lastName' => 'Doe',
         'email' => 'john.doe@example.com',
-        'mobile': 49123456789,
+        'mobile' => '49123456789',
         'address' => 'Anystr. 17, 12345'
     ],
     'channel' => [
