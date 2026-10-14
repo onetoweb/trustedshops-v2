@@ -5,7 +5,9 @@ namespace Onetoweb\TrustedshopsV2;
 use GuzzleHttp\Client as GuzzleClient;
 use GuzzleHttp\RequestOptions;
 use Onetoweb\TrustedshopsV2\Token;
+use Onetoweb\TrustedshopsV2\Config\Method;
 use DateTime;
+use Closure;
 
 /**
  * Client.
@@ -21,45 +23,32 @@ class Client
     /**
      * Base uris.
      */
-    const BASE_URI = 'https://api.etrusted.com';
-    const BASE_URI_LOGIN = 'https://login.etrusted.com';
-    
-    /**
-     * Methods.
-     */
-    const METHOD_GET = 'GET';
-    const METHOD_POST = 'POST';
-    const METHOD_PUT = 'PUT';
-    const METHOD_DELETE = 'DELETE';
-    
-    /**
-     * @var string
-     */
-    private $clientId;
-    
-    /**
-     * @var string
-     */
-    private $clientSecret;
+    public const BASE_URI = 'https://api.etrusted.com';
+    public const BASE_URI_LOGIN = 'https://login.etrusted.com';
     
     /**
      * @var Token
      */
-    private $token;
+    private ?Token $token = null;
     
     /**
      * @var callable
      */
-    private $updateTokenCallback;
+    private ?Closure $updateTokenCallback = null;
     
     /**
      * @param string $clientId
      * @param string $clientSecret
      */
-    public function __construct(string $clientId, string $clientSecret)
-    {
-        $this->clientId = $clientId;
-        $this->clientSecret = $clientSecret;
+    public function __construct(
+        
+        #[\SensitiveParameter]
+        private string $clientId,
+        
+        #[\SensitiveParameter]
+        private string $clientSecret
+    ) {
+        
     }
     
     /**
@@ -81,11 +70,11 @@ class Client
     }
     
     /**
-     * @param callable $updateTokenCallback
+     * @param Closure $updateTokenCallback
      * 
      * @return void
      */
-    public function setUpdateTokenCallback(callable $updateTokenCallback): void
+    public function setUpdateTokenCallback(Closure $updateTokenCallback): void
     {
         $this->updateTokenCallback = $updateTokenCallback;
     }
@@ -121,7 +110,7 @@ class Client
      */
     public function get(string $endpoint, array $query = []): ?array
     {
-        return $this->request(self::METHOD_GET, $endpoint, [], $query);
+        return $this->request(Method::GET, $endpoint, [], $query);
     }
     
     /**
@@ -134,7 +123,7 @@ class Client
      */
     public function post(string $endpoint, array $data = [], array $query = [], bool $json = true): ?array
     {
-        return $this->request(self::METHOD_POST, $endpoint, $data, $query, $json);
+        return $this->request(Method::POST, $endpoint, $data, $query, $json);
     }
     
     /**
@@ -147,7 +136,7 @@ class Client
      */
     public function put(string $endpoint, array $data = [], array $query = [], bool $json = true): ?array
     {
-        return $this->request(self::METHOD_PUT, $endpoint, $data, $query, $json);
+        return $this->request(Method::PUT, $endpoint, $data, $query, $json);
     }
     
     /**
@@ -158,18 +147,18 @@ class Client
      */
     public function delete(string $endpoint, array $query = []): ?array
     {
-        return $this->request(self::METHOD_DELETE, $endpoint, [], $query);
+        return $this->request(Method::DELETE, $endpoint, [], $query);
     }
     
     /**
-     * @param string $method
+     * @param Method $method
      * @param string $endpoint
      * @param array $data = []
      * @param array $query = []
      * 
      * @return array|null
      */
-    public function request(string $method, string $endpoint, array $data = [], array $query = [], bool $json = true): ?array
+    public function request(Method $method, string $endpoint, array $data = [], array $query = [], bool $json = true): ?array
     {
         // check credentials
         if ($endpoint !== '/oauth/token') {
@@ -215,7 +204,7 @@ class Client
         ]);
         
         // make request
-        $response = $guzzleClient->request($method, $baseUri.$endpoint, $options);
+        $response = $guzzleClient->request($method->value, $baseUri.$endpoint, $options);
         
         // get contents
         $contents = $response->getBody()->getContents();

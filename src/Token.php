@@ -3,6 +3,7 @@
 namespace Onetoweb\TrustedshopsV2;
 
 use DateTime;
+use Stringable;
 
 /**
  * Token.
@@ -10,16 +11,27 @@ use DateTime;
  * @author Jonathan van 't Ende <jvantende@onetoweb.nl>
  * @copyright Onetoweb B.V.
  */
-class Token
+class Token implements Stringable
 {
     /**
      * @param string $accessToken
      * @param DateTime $expiresIn
      */
-    public function __construct(string $accessToken, DateTime $expires)
+    public function __construct(
+        
+        #[\SensitiveParameter]
+        private string $accessToken,
+        private DateTime $expires
+    ) {
+        
+    }
+    
+    /**
+     * @return string
+     */
+    public function __toString(): string
     {
-        $this->accessToken = $accessToken;
-        $this->expires = $expires;
+        return $this->accessToken;
     }
     
     /**
